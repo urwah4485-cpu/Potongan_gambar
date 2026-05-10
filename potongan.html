@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Puzzle Gambar</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to right, #ffecd2, #fcb69f);
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 16px;
+      background: #ff7b54;
+      color: white;
+    }
+
+    button:hover {
+      background: #ff5722;
+    }
+
+    #timer {
+      font-size: 24px;
+      font-weight: bold;
+      color: red;
+      margin: 15px 0;
+    }
+
+    .puzzle-container {
+      width: 306px;
+      height: 306px;
+      margin: auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 3px;
+      background: #222;
+      padding: 3px;
+      border-radius: 10px;
+    }
+
+    .piece {
+      width: 100px;
+      height: 100px;
+      background-size: 300px 300px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .empty {
+      background: white;
+      cursor: default;
+    }
+
+    #message {
+      margin-top: 20px;
+      font-size: 22px;
+      font-weight: bold;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎮 Game Puzzle Gambar 🎮</h1>
+
+  <button onclick="startGame('buah')">🍎 Puzzle Buah</button>
+  <button onclick="startGame('rumah')">🏠 Puzzle Rumah</button>
+
+  <div id="timer">Waktu: 60</div>
+
+  <div class="puzzle-container" id="puzzle"></div>
+
+  <div id="message"></div>
+
+  <script>
+    const puzzle = document.getElementById('puzzle');
+    const timerText = document.getElementById('timer');
+    const message = document.getElementById('message');
+
+    let pieces = [];
+    let emptyIndex = 8;
+    let timeLeft = 60;
+    let timer;
+
+    const images = {
+      buah: 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?q=80&w=600',
+      rumah: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=80&w=600'
+    };
+
+    function startGame(type) {
+      clearInterval(timer);
+      timeLeft = 60;
+      timerText.innerText = 'Waktu: ' + timeLeft;
+      message.innerText = '';
+
+      createPuzzle(images[type]);
+      startTimer();
+    }
+
+    function createPuzzle(image) {
+      puzzle.innerHTML = '';
+      pieces = [...Array(9).keys()];
+
+      shuffle(pieces);
+
+      emptyIndex = pieces.indexOf(8);
+
+      pieces.forEach((piece, index) => {
+        const div = document.createElement('div');
+
+        if (piece === 8) {
+          div.classList.add('piece', 'empty');
+        } else {
+          div.classList.add('piece');
+
+          const x = (piece % 3) * 100;
+          const y = Math.floor(piece / 3) * 100;
+
+          div.style.backgroundImage = `url(${image})`;
+          div.style.backgroundPosition = `-${x}px -${y}px`;
+        }
+
+        div.addEventListener('click', () => movePiece(index));
+
+        puzzle.appendChild(div);
+      });
+    }
+
+    function movePiece(index) {
+      const validMoves = [
+        emptyIndex - 1,
+        emptyIndex + 1,
+        emptyIndex - 3,
+        emptyIndex + 3
+      ];
+
+      if (validMoves.includes(index)) {
+        [pieces[index], pieces[emptyIndex]] = [pieces[emptyIndex], pieces[index]];
+        emptyIndex = index;
+
+        const currentImage = document.querySelector('.piece:not(.empty)')?.style.backgroundImage;
+
+        createPuzzleFromCurrent(currentImage);
+
+        checkWin();
+      }
+    }
+
+    function createPuzzleFromCurrent(image) {
+      puzzle.innerHTML = '';
+
+      pieces.forEach((piece, index) => {
+        const div = document.createElement('div');
+
+        if (piece === 8) {
+          div.classList.add('piece', 'empty');
+        } else {
+          div.classList.add('piece');
+
+          const x = (piece % 3) * 100;
+          const y = Math.floor(piece / 3) * 100;
+
+          div.style.backgroundImage = image;
+          div.style.backgroundPosition = `-${x}px -${y}px`;
+        }
+
+        div.addEventListener('click', () => movePiece(index));
+
+        puzzle.appendChild(div);
+      });
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function startTimer() {
+      timer = setInterval(() => {
+        timeLeft--;
+        timerText.innerText = 'Waktu: ' + timeLeft;
+
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          message.innerText = '⏰ Waktu Habis!';
+        }
+      }, 1000);
+    }
+
+    function checkWin() {
+      let win = true;
+
+      for (let i = 0; i < pieces.length; i++) {
+        if (pieces[i] !== i) {
+          win = false;
+          break;
+        }
+      }
+
+      if (win) {
+        clearInterval(timer);
+        message.innerText = '🎉 Selamat Kamu Menang!';
+      }
+    }
+  </script>
+
+</body>
+</html>
